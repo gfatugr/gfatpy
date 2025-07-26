@@ -1,0 +1,33 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-added-large-files
+        args: [--maxkb=650]
+-   repo: https://github.com/psf/black
+    rev: 22.6.0
+    hooks:
+    -   id: black
+        language_version: python3.10
+-   repo: https://github.com/myint/autoflake
+    rev: v1.4
+    hooks:
+    -   id: autoflake
+        args:
+        - --recursive
+        - --in-place
+        - --remove-all-unused-imports
+        - --remove-unused-variables
+        - --expand-star-imports
+        - --exclude
+        - __init__.py
+        - --remove-duplicate-keys
+- repo: https://github.com/kynan/nbstripout
+  rev: 0.6.0
+  hooks:
+    - id: nbstripout

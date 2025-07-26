@@ -1,0 +1,72 @@
+# You can override the included template(s) by including variable overrides
+# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
+# Secret Detection customization: https://docs.gitlab.com/ee/user/application_security/secret_detection/#customizing-settings
+# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
+# Note that environment variables can be set in several places
+# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
+
+# .gitlab-ci.yml
+# CI/CD pipeline para generar documentación y sincronizar con GitHub
+
+stages:
+  - test
+  - docs
+  # - deploy
+
+# Análisis estático de seguridad (opcional, puedes eliminarlo si no usas SAST)
+sast:
+  stage: test
+include:
+  - template: Security/SAST.gitlab-ci.yml
+
+# Generación automática de documentación con pdoc
+pages:
+  image: python:3.10-slim
+  stage: docs
+  script:
+    - pip install .[docs]
+    - pdoc ./gfatpy -o public --logo https://i.postimg.cc/mkJPMc3v/LOGO-GFAT-150pp.png
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# # Sincronización del repositorio con GitHub (push mirror)
+# mirror:
+#   stage: deploy
+#   image: python:3.10-slim
+
+#   before_script:
+#     # Instala herramientas necesarias
+#     - apt-get update && apt-get install -y git openssh-client
+
+#     # Configura SSH para GitHub
+#     - mkdir -p ~/.ssh
+#     - echo "$GITHUB_KEY_B64" | base64 -d > ~/.ssh/id_rsa
+#     - chmod 600 ~/.ssh/id_rsa
+
+#     # Asegura conexión SSH con GitHub y GitLab
+#     - ssh-keyscan github.com >> ~/.ssh/known_hosts
+#     - ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+
+#     # Configura identidad Git
+#     - git config --global user.name "GitLab CI"
+#     - git config --global user.email "gfat@ugr.es"
+
+#     # Elimina el repo existente y lo clona desde GitLab por SSH
+#     - rm -rf .git
+#     - git init
+#     - git remote add origin git@gitlab.com:gfat1/gfatpy.git
+#     - git fetch origin
+#     - git checkout -b develop origin/develop
+
+#     # Añade GitHub como remoto destino
+#     - git remote add github git@github.com:gfatugr/gfatpy.git
+
+#   script:
+#     # Empuja solo la rama develop
+#     - git push --force github develop:develop
+
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH == "develop"'
